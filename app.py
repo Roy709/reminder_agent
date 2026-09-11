@@ -42,8 +42,8 @@ st.markdown("""
     [data-testid="stSidebarCollapsedControl"] {
         display: block !important;
         position: fixed !important;
-        top: 0.75rem !important;
-        left: 0.75rem !important;
+        top: 0.5rem !important;
+        left: 0.5rem !important;
         z-index: 999999 !important;
         background-color: #1e1b4b !important; /* Dark indigo matching Hero Banner */
         border-radius: 8px !important;
@@ -84,8 +84,10 @@ st.markdown("""
         color: #475569 !important;
     }
 
-    /* Transparent Floating Header */
+    /* Reduce Header Padding & Margin */
     [data-testid="stHeader"] {
+        height: 0px !important;
+        min-height: 0px !important;
         background-color: transparent !important;
         z-index: 100 !important;
     }
@@ -95,9 +97,9 @@ st.markdown("""
         display: none !important;
     }
 
-    /* Main Block Container Padding */
+    /* Reduce Main Block Container Top Padding */
     .main .block-container {
-        padding-top: 2rem !important;
+        padding-top: 0.5rem !important;
         padding-bottom: 2rem !important;
         max-width: 950px;
     }
@@ -225,7 +227,7 @@ def get_gemini_chat_history():
 # 3. Notification & Scheduling Logic (plyer + datetime + threading)
 # -------------------------------------------------------------------
 def trigger_notification(task_name: str):
-    """Fires native OS desktop notification."""
+    """Fires native OS desktop notification with cloud server fallback."""
     try:
         notification.notify(
             title="⏰ Reminder Agent Alert",
@@ -234,7 +236,7 @@ def trigger_notification(task_name: str):
             timeout=10
         )
     except Exception as e:
-        print(f"Alert execution error: {e}")
+        print(f"Cloud execution alert triggered for task: '{task_name}' (Desktop notification skipped on server: {e})")
 
 def create_reminder_tool(task: str, scheduled_time: str) -> str:
     """Schedules a new task with active thread references."""
@@ -281,7 +283,7 @@ reminder_tool_decl = types.FunctionDeclaration(
 tools_config = types.Tool(function_declarations=[reminder_tool_decl])
 
 # -------------------------------------------------------------------
-# 4. Core Agent Reasoning Engine
+# 4. Core Agent Reasoning Engine with Fallback Handling
 # -------------------------------------------------------------------
 def run_agent_turn():
     client = genai.Client()
@@ -299,15 +301,28 @@ def run_agent_turn():
 
     chat_contents = get_gemini_chat_history()
 
-    response = client.models.generate_content(
-        model="gemini-3.1-flash-lite",
-        contents=chat_contents,
-        config=types.GenerateContentConfig(
-            system_instruction=system_instruction,
-            tools=[tools_config],
-            temperature=0.1
-        )
-    )
+    # Fallback pipeline prevents 503 UNAVAILABLE crashes on Render
+    models_to_try = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"]
+    response = None
+
+    for model_name in models_to_try:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=chat_contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    tools=[tools_config],
+                    temperature=0.1
+                )
+            )
+            break
+        except Exception as e:
+            print(f"Model {model_name} failed: {e}. Attempting fallback...")
+            continue
+
+    if not response:
+        return "⚠️ Service temporarily experiencing high API load. Please resubmit your command in a few moments."
 
     if response.function_calls:
         for call in response.function_calls:
@@ -334,13 +349,19 @@ def run_agent_turn():
                     types.Content(role="user", parts=[tool_response_part])
                 ]
 
-                final_response = client.models.generate_content(
-                    model="gemini-3.1-flash-lite",
-                    contents=updated_contents,
-                    config=types.GenerateContentConfig(system_instruction=system_instruction)
-                )
+                final_response = None
+                for model_name in models_to_try:
+                    try:
+                        final_response = client.models.generate_content(
+                            model=model_name,
+                            contents=updated_contents,
+                            config=types.GenerateContentConfig(system_instruction=system_instruction)
+                        )
+                        break
+                    except Exception:
+                        continue
 
-                return final_response.text
+                return final_response.text if final_response else "Scheduled successfully."
 
     return response.text
 
@@ -375,7 +396,11 @@ if user_input := st.chat_input("Command your Reminder Agent (e.g., 'Remind me to
 
     with st.chat_message("assistant"):
         with st.spinner("Analyzing intent & calculating schedule parameters..."):
-            agent_reply = run_agent_turn()
+            try:
+                agent_reply = run_agent_turn()
+            except Exception as err:
+                agent_reply = f"⚠️ Request failed: {err}. Please try again."
+
             st.markdown(agent_reply)
             st.session_state.messages.append({"role": "assistant", "content": agent_reply})
 
@@ -446,11 +471,9 @@ with st.sidebar:
                         c1, c2 = st.columns(2)
                         with c1:
                             if st.button("➕ Snooze 5m", key=f"snooze_{item['id']}", use_container_width=True):
-                                # Cancel existing thread timer
                                 if item['id'] in st.session_state.timers:
                                     st.session_state.timers[item['id']].cancel()
                                 
-                                # Extend time by 5 minutes
                                 new_dt = item['target_dt'] + timedelta(minutes=5)
                                 item['target_dt'] = new_dt
                                 item['scheduled_time'] = new_dt.strftime("%Y-%m-%d %H:%M:%S")
