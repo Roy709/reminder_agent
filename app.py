@@ -301,8 +301,8 @@ def run_agent_turn():
 
     chat_contents = get_gemini_chat_history()
 
-    # Fallback pipeline prevents 503 UNAVAILABLE crashes on Render
-    models_to_try = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"]
+    # Valid model endpoints prevent 503 UNAVAILABLE crashes on Render/Streamlit Cloud
+    models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
     response = None
 
     for model_name in models_to_try:
@@ -399,7 +399,7 @@ if user_input := st.chat_input("Command your Reminder Agent (e.g., 'Remind me to
             try:
                 agent_reply = run_agent_turn()
             except Exception as err:
-                agent_reply = f"⚠️ Request failed: {err}. Please try again."
+                agent_reply = f"⚠️ Request failed: {err}. Please verify your API key and try again."
 
             st.markdown(agent_reply)
             st.session_state.messages.append({"role": "assistant", "content": agent_reply})
@@ -432,20 +432,9 @@ with st.sidebar:
                 now = datetime.now()
                 time_left = int((item["target_dt"] - now).total_seconds())
 
-                # Check if reminder hit due time
                 if item["status"] == "Active" and time_left <= 0:
                     item["status"] = "Triggered"
                     st.toast(f"**Reminder Alert:** {item['task']}", icon="⏰")
-                    
-                    # Play browser chime audio
-                    st.markdown(
-                        """
-                        <audio autoplay style="display:none;">
-                            <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
-                        </audio>
-                        """,
-                        unsafe_allow_html=True
-                    )
 
                 with st.container(border=True):
                     cols = st.columns([2.5, 1.5])
