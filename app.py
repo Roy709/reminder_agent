@@ -305,7 +305,7 @@ def run_agent_turn():
     chat_contents = get_gemini_chat_history()
 
     # Valid model endpoints prevent API errors
-    models_to_try = ["gemini-2.5-flash", "gemini-1.5-flash"]
+    models_to_try = ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
     response = None
 
     for model_name in models_to_try:
