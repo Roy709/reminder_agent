@@ -38,18 +38,22 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* Force Sidebar Open Toggle Button (>>) Visible Across Chrome & Edge Dark Themes */
+/* Keep Sidebar Open Toggle Button (>>) Vertically Aligned */
     [data-testid="stSidebarCollapsedControl"] {
-        display: block !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         position: fixed !important;
-        top: 0.5rem !important;
-        left: 0.5rem !important;
+        top: 1.25rem !important; /* Pushes icon down inline with the Hero Banner */
+        left: 1rem !important;
         z-index: 999999 !important;
         background-color: #1e1b4b !important; /* Dark indigo matching Hero Banner */
         border-radius: 8px !important;
         border: 1px solid #312e81 !important;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
         padding: 4px !important;
+        height: 36px !important;
+        width: 36px !important;
     }
     
     /* Force SVG Arrow Paths Pure White Regardless of OS Theme */
@@ -84,12 +88,11 @@ st.markdown("""
         color: #475569 !important;
     }
 
-    /* Reduce Header Padding & Margin */
-    [data-testid="stHeader"] {
-        height: 0px !important;
-        min-height: 0px !important;
+[data-testid="stHeader"] {
         background-color: transparent !important;
         z-index: 100 !important;
+        height: 60px !important;
+        min-height: 60px !important;
     }
     
     /* Hide Deploy Button & Main Menu */
@@ -301,8 +304,8 @@ def run_agent_turn():
 
     chat_contents = get_gemini_chat_history()
 
-    # Valid model endpoints prevent 503 UNAVAILABLE crashes on Render/Streamlit Cloud
-    models_to_try = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
+    # Valid model endpoints prevent API errors
+    models_to_try = ["gemini-2.5-flash", "gemini-1.5-flash"]
     response = None
 
     for model_name in models_to_try:
