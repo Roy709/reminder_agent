@@ -23,8 +23,8 @@
     ### 2. Clone the Repository
 
     ```bash
-    git clone https://github.com/YOUR_USERNAME/reminder-agent.git
-    cd reminder-agent
+    git clone https://github.com/Roy709/reminder_agent.git
+    cd reminder_agent
     ```
 
     ### 3. Set Up Virtual Environment & Dependencies
