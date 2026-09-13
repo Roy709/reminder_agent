@@ -1,37 +1,43 @@
-    # ⏰ Reminder Agent
+  # ⏰ Reminder Agent
 
-    An autonomous natural-language scheduling workspace built with **Streamlit**, the **Google GenAI SDK**, and **Pydantic**. The Reminder Agent parses user scheduling intent, calculates execution target dates and times, and registers active background thread timers with a real-time sidebar control panel.
+An autonomous natural-language scheduling workspace built with **Streamlit**, the **Google GenAI SDK**, and **Pydantic**. The Reminder Agent parses user scheduling intent, calculates execution target dates and times, and registers active background thread timers with a real-time sidebar control panel.
 
-    ---
+🌐 **Live Demo**: [https://reminder-agent-001.streamlit.app/](https://reminder-agent-001.streamlit.app/)
 
-    ## ✨ Features
+---
 
-    * **Natural Language Intent Parsing**: Translates human relative time commands (e.g., *"Remind me to submit team report in 10 minutes"*) into absolute timestamps using Gemini 2.5 Flash.
-    * **Structured Output Schema**: Enforces strict JSON data structures via `Pydantic` models.
-    * **Resilient Background Execution**: Uses Python's native `threading` engine with headless cloud fallbacks so notifications log safely on remote Linux servers.
-    * **Live Operations Dashboard**: Dynamic 1-second ticks showing active task countdowns, one-click `+5m Snooze`, task cancellation, and chime sound alerts.
-    * **Cross-Browser Theme Fixes**: Custom CSS rules designed to maintain high contrast and visible UI controls across Chrome and Edge browser dark/light mode filters.
+## ✨ Features
 
-    ---
+* **Natural Language Intent Parsing**: Translates human relative time commands (e.g., *"Remind me to submit team report in 10 minutes"*) into absolute timestamps using Gemini 2.5/3.5 models.
+* **Function Tool Calling**: Uses Gemini structured tool execution (`create_reminder_tool`, `update_reminder_tool`) to schedule and modify tasks dynamically.
+* **Multi-Model Fallback Engine**: Built with automated fallback models (`gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3.5-flash-lite`) to bypass API load limits.
+* **Resilient Background Execution**: Uses Python's native `threading` engine with desktop OS (`plyer`) and non-intrusive Web Audio API sound alerts.
+* **Live Operations Dashboard**: Dynamic 1-second ticks showing active task countdowns, one-click `+5m Snooze`, task cancellation, and bottom-anchored dashboard clearing.
 
-    ## 🚀 Quick Start (Local Setup)
+---
 
-    ### 1. Prerequisites
+## 🚀 Quick Start (Local Setup)
 
-    Ensure Python 3.10 or higher is installed on your local machine.
+### 1. Prerequisites
 
-    ### 2. Clone the Repository
+Ensure Python 3.10 or higher is installed on your local machine.
 
-    ```bash
-    git clone https://github.com/Roy709/reminder_agent.git
-    cd reminder_agent
-    ```
+### 2. Clone the Repository
+
+```bash
+git clone [https://github.com/Roy709/reminder_agent.git](https://github.com/Roy709/reminder_agent.git)
+cd reminder_agent
 
     ### 3. Set Up Virtual Environment & Dependencies
 
     ```bash
     python -m venv venv
-    source venv/bin/activate  # On Windows use: venv\Scripts\activate
+
+    # macOS / Linux:
+    source venv/bin/activate  
+
+    # Windows (Command Prompt / PowerShell):
+     venv\Scripts\activate
     pip install -r requirements.txt
     ```
 
