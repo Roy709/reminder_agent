@@ -18,65 +18,59 @@ st.set_page_config(
 )
 
 # -------------------------------------------------------------------
-# 1. Cross-Browser CSS Styling System (Chrome & Edge Dark Mode Override)
+# 1. Cross-Browser CSS Styling System (Localized Sidebar Scrollbar)
 # -------------------------------------------------------------------
 st.markdown("""
 <style>
     /* Global Page Body Reset */
     .stApp {
-        background-color: #f8fafc !important;
+        background-color: #ffffff !important;
         color: #0f172a !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* Force Light Theme Colors on Chat Messages Across All Browsers */
-    [data-testid="stChatMessage"], 
-    [data-testid="stChatMessage"] p, 
-    [data-testid="stChatMessage"] span,
-    .stChatMessage [data-testid="stMarkdownContainer"] p {
-        color: #0f172a !important;
-        font-weight: 500 !important;
-    }
-
-/* Keep Sidebar Open Toggle Button (>>) Vertically Aligned */
+    /* Permanently Hide Sidebar Collapse/Expand Toggle Controls (<< and >>) */
+    [data-testid="stSidebarCollapseButton"],
     [data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        position: fixed !important;
-        top: 1.25rem !important; /* Pushes icon down inline with the Hero Banner */
-        left: 1rem !important;
-        z-index: 999999 !important;
-        background-color: #1e1b4b !important; /* Dark indigo matching Hero Banner */
-        border-radius: 8px !important;
-        border: 1px solid #312e81 !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
-        padding: 4px !important;
-        height: 36px !important;
-        width: 36px !important;
-    }
-    
-    /* Force SVG Arrow Paths Pure White Regardless of OS Theme */
-    [data-testid="stSidebarCollapsedControl"] button,
-    [data-testid="stSidebarCollapsedControl"] button *,
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] path {
-        color: #ffffff !important;
-        fill: #ffffff !important;
-        stroke: #ffffff !important;
-        opacity: 1 !important;
-        visibility: visible !important;
+        display: none !important;
+        visibility: hidden !important;
     }
 
-    [data-testid="stSidebarCollapsedControl"]:hover {
-        background-color: #312e81 !important;
-    }
-
-    /* Sidebar Base Styling */
+    /* Force Sidebar Open & Fixed Width */
     [data-testid="stSidebar"] {
-        background-color: #ffffff !important;
+        background-color: #f8fafc !important;
         border-right: 1px solid #e2e8f0;
+        min-width: 360px !important;
+        max-width: 360px !important;
     }
+
+    /* Disable Outer Sidebar Container Scrollbar */
+    [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+        padding-top: 0rem !important;
+        overflow-y: hidden !important;
+        overflow-x: hidden !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stSidebarHeader"] {
+        display: none !important;
+        height: 0px !important;
+        min-height: 0px !important;
+        padding: 0px !important;
+        margin: 0px !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
+        padding-top: 0.5rem !important;
+        margin-top: 0.5rem !important;
+    }
+
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        padding-top: 0rem !important;
+        margin-top: 0rem !important;
+    }
+
     [data-testid="stSidebar"] *, [data-testid="stSidebar"] p, [data-testid="stSidebar"] span {
         color: #1e293b !important;
     }
@@ -88,42 +82,71 @@ st.markdown("""
         color: #475569 !important;
     }
 
-[data-testid="stHeader"] {
-        background-color: transparent !important;
-        z-index: 100 !important;
-        height: 60px !important;
-        min-height: 60px !important;
+    /* Remove Invisible Top Header Padding */
+    [data-testid="stHeader"] {
+        display: none !important;
     }
-    
+
+    /* Main Screen Container Spacing Optimization */
+    .stMainBlockContainer,
+    [data-testid="stMainBlockContainer"],
+    .main .block-container {
+        padding-top: 0.5rem !important;
+        margin-top: 0rem !important;
+        padding-bottom: 0.5rem !important;
+        max-width: 850px;
+    }
+
+    /* Modern Centered Greeting Header */
+    .welcome-header {
+        text-align: center;
+        margin-top: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .welcome-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #0f172a !important;
+        margin-bottom: 4px;
+    }
+    .welcome-subtitle {
+        font-size: 0.95rem;
+        color: #64748b !important;
+    }
+
+    /* Force Light Theme Colors on Chat Messages Across All Browsers */
+    [data-testid="stChatMessage"], 
+    [data-testid="stChatMessage"] p, 
+    [data-testid="stChatMessage"] span,
+    .stChatMessage [data-testid="stMarkdownContainer"] p {
+        color: #0f172a !important;
+        font-weight: 500 !important;
+    }
+
     /* Hide Deploy Button & Main Menu */
     .stAppDeployButton, #MainMenu {
         display: none !important;
     }
 
-    /* Reduce Main Block Container Top Padding */
-    .main .block-container {
-        padding-top: 0.5rem !important;
-        padding-bottom: 2rem !important;
-        max-width: 950px;
+    /* Floating Chat Input Box Gap Optimization */
+    [data-testid="stBottom"] {
+        padding-bottom: 0.5rem !important;
+        padding-top: 0rem !important;
+    }
+    
+    [data-testid="stBottom"] > div {
+        padding-top: 0rem !important;
+        background-color: #ffffff !important;
     }
 
-    /* Sidebar Width Configuration */
-    [data-testid="stSidebar"][aria-expanded="true"] {
-        min-width: 360px !important;
-        max-width: 360px !important;
-    }
-
-    /* Pure White Floating Bottom Chat Input Box Override */
-    [data-testid="stBottom"], [data-testid="stBottom"] > div {
-        background-color: #f8fafc !important;
-    }
     [data-testid="stChatInput"], 
     [data-testid="stChatInput"] > div, 
     [data-baseweb="base-input"], 
     [data-baseweb="input"] {
         background-color: #ffffff !important;
         border: 1px solid #cbd5e1 !important;
-        border-radius: 12px !important;
+        border-radius: 14px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
     }
     [data-testid="stChatInput"] * {
         background-color: #ffffff !important;
@@ -131,27 +154,6 @@ st.markdown("""
     }
     [data-testid="stChatInput"] textarea::placeholder {
         color: #64748b !important;
-    }
-
-    /* Hero Banner Component */
-    .hero-container {
-        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-        padding: 20px 24px;
-        border-radius: 12px;
-        color: white !important;
-        margin-bottom: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    }
-    .hero-title {
-        font-size: 1.6rem;
-        font-weight: 700;
-        margin: 0;
-        color: #ffffff !important;
-    }
-    .hero-subtitle {
-        font-size: 0.9rem;
-        color: #c7d2fe !important;
-        margin-top: 4px;
     }
 
     /* Custom Non-Wrapping Status Badges */
@@ -181,16 +183,20 @@ st.markdown("""
     .agent-status-bar {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
-        margin-bottom: 16px;
+        margin-bottom: 1rem;
         background-color: #ffffff;
-        padding: 8px 14px;
-        border-radius: 8px;
+        padding: 6px 14px;
+        border-radius: 20px;
         border: 1px solid #e2e8f0;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
     }
     .status-pulse {
-        height: 10px;
-        width: 10px;
+        height: 8px;
+        width: 8px;
         background-color: #22c55e;
         border-radius: 50%;
         display: inline-block;
@@ -200,7 +206,12 @@ st.markdown("""
     @keyframes pulse-green {
         0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
         70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    }
+
+    /* Chat Messages Container Inner Border Removal */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        border: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -219,6 +230,9 @@ if "reminders" not in st.session_state:
 if "timers" not in st.session_state:
     st.session_state.timers = {}
 
+if "preset_input" not in st.session_state:
+    st.session_state.preset_input = None
+
 def get_gemini_chat_history():
     history = []
     for msg in st.session_state.messages:
@@ -227,7 +241,7 @@ def get_gemini_chat_history():
     return history
 
 # -------------------------------------------------------------------
-# 3. Notification & Scheduling Logic (plyer + datetime + threading)
+# 3. Notification & Tool Execution Logic
 # -------------------------------------------------------------------
 def trigger_notification(task_name: str):
     """Fires native OS desktop notification with cloud server fallback."""
@@ -269,10 +283,52 @@ def create_reminder_tool(task: str, scheduled_time: str) -> str:
     except Exception as e:
         return f"ERROR: Failed to parse execution time - {str(e)}"
 
-# Function Tool Declaration
+def update_reminder_tool(search_query: str, new_scheduled_time: str, new_task_name: str = None) -> str:
+    """Modifies an existing reminder instead of creating a duplicate entry."""
+    target_item = None
+    for item in st.session_state.reminders:
+        if search_query.lower() in item["task"].lower():
+            target_item = item
+            break
+
+    if not target_item:
+        return f"ERROR: Could not find an active reminder matching query '{search_query}'."
+    
+    if target_item["status"] == "Triggered":
+        return f"NOTICE: The reminder '{target_item['task']}' has already been triggered and completed. Please create a new reminder instead."
+
+    try:
+        new_target_dt = datetime.strptime(new_scheduled_time, "%Y-%m-%d %H:%M:%S")
+        
+        # Cancel old timer thread
+        if target_item['id'] in st.session_state.timers:
+            st.session_state.timers[target_item['id']].cancel()
+
+        # Update reminder fields
+        if new_task_name:
+            target_item["task"] = new_task_name
+        target_item["scheduled_time"] = new_scheduled_time
+        target_item["target_dt"] = new_target_dt
+
+        # Re-arm timer thread
+        delay = (new_target_dt - datetime.now()).total_seconds()
+        if delay > 0:
+            timer = threading.Timer(delay, trigger_notification, args=[target_item["task"]])
+            timer.start()
+            st.session_state.timers[target_item['id']] = timer
+            target_item["status"] = "Active"
+        else:
+            trigger_notification(target_item["task"])
+            target_item["status"] = "Triggered"
+
+        return f"SUCCESS: Updated reminder '{target_item['task']}' to run at {new_scheduled_time}."
+    except Exception as e:
+        return f"ERROR: Failed to update reminder - {str(e)}"
+
+# Function Tool Declarations
 reminder_tool_decl = types.FunctionDeclaration(
     name="create_reminder_tool",
-    description="Schedules a reminder task to run at an absolute timestamp (YYYY-MM-DD HH:MM:SS format).",
+    description="Schedules a NEW reminder task at an absolute timestamp (YYYY-MM-DD HH:MM:SS format).",
     parameters=types.Schema(
         type=types.Type.OBJECT,
         properties={
@@ -283,29 +339,50 @@ reminder_tool_decl = types.FunctionDeclaration(
     ),
 )
 
-tools_config = types.Tool(function_declarations=[reminder_tool_decl])
+update_tool_decl = types.FunctionDeclaration(
+    name="update_reminder_tool",
+    description="Updates or postpones an EXISTING active reminder matching a search query.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "search_query": types.Schema(type=types.Type.STRING, description="Task name or keyword to locate the existing reminder."),
+            "new_scheduled_time": types.Schema(type=types.Type.STRING, description="New target datetime string (YYYY-MM-DD HH:MM:SS)."),
+            "new_task_name": types.Schema(type=types.Type.STRING, description="Optional updated task description text."),
+        },
+        required=["search_query", "new_scheduled_time"],
+    ),
+)
+
+tools_config = types.Tool(function_declarations=[reminder_tool_decl, update_tool_decl])
 
 # -------------------------------------------------------------------
-# 4. Core Agent Reasoning Engine with Fallback Handling
+# 4. Core Agent Reasoning Engine
 # -------------------------------------------------------------------
 def run_agent_turn():
     client = genai.Client()
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # Construct active reminders list so agent can resolve updates accurately
+    active_reminders_summary = "\n".join([f"- {r['task']} (Due: {r['scheduled_time']})" for r in st.session_state.reminders if r['status'] == 'Active'])
+
     system_instruction = (
         f"You are the Reminder Agent, an autonomous scheduling assistant. Current system timestamp: {now_str}.\n\n"
+        f"CURRENT ACTIVE REMINDERS:\n{active_reminders_summary if active_reminders_summary else 'No active reminders.'}\n\n"
         "CORE RESPONSIBILITIES:\n"
-        "1. Schedule tasks precision-calculated relative to current system timestamp.\n"
-        "2. PARAMETER GATHERING: If the prompt lacks exact details (e.g., missing date/time or reminder description), "
-        "do not attempt tool execution. Respectfully request missing fields.\n"
-        "3. DOMAIN BOUNDARIES: Reject off-topic general knowledge/trivia requests politely. Focus strictly on reminders and task scheduling.\n"
-        "4. Call `create_reminder_tool` immediately when parameters are resolved."
+        "1. Schedule NEW tasks precision-calculated relative to system timestamp using `create_reminder_tool`.\n"
+        "2. UPDATE/POSTPONE EXISTING tasks using `update_reminder_tool` whenever user asks to change, move, postpone, or update a task. "
+        "Match the `search_query` parameter to the exact task name from the CURRENT ACTIVE REMINDERS list above.\n"
+        "3. PARAMETER GATHERING: If the prompt lacks exact details, respectfully request missing fields.\n"
+        "4. Call the appropriate tool function immediately when parameters are resolved."
     )
 
     chat_contents = get_gemini_chat_history()
 
-    # Valid model endpoints prevent API errors
-    models_to_try = ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
+    models_to_try = [
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite"
+    ]
     response = None
 
     for model_name in models_to_try:
@@ -329,16 +406,24 @@ def run_agent_turn():
 
     if response.function_calls:
         for call in response.function_calls:
-            if call.name == "create_reminder_tool":
+            if call.name in ["create_reminder_tool", "update_reminder_tool"]:
                 args = call.args
                 
-                with st.status("⚡ Reminder Agent: Processing Tool Execution...", expanded=True) as status_box:
-                    st.write(f"**Function:** `create_reminder_tool`")
-                    st.write(f"**Task Description:** `{args['task']}`")
-                    st.write(f"**Calculated Time:** `{args['scheduled_time']}`")
+                with st.status(f"⚡ Processing Tool: `{call.name}`...", expanded=True) as status_box:
+                    if call.name == "create_reminder_tool":
+                        st.write(f"**Task Description:** `{args['task']}`")
+                        st.write(f"**Calculated Time:** `{args['scheduled_time']}`")
+                        tool_result = create_reminder_tool(args['task'], args['scheduled_time'])
+                    else:
+                        st.write(f"**Target Task:** `{args['search_query']}`")
+                        st.write(f"**New Time:** `{args['new_scheduled_time']}`")
+                        tool_result = update_reminder_tool(
+                            search_query=args['search_query'],
+                            new_scheduled_time=args['new_scheduled_time'],
+                            new_task_name=args.get('new_task_name')
+                        )
                     
-                    tool_result = create_reminder_tool(args['task'], args['scheduled_time'])
-                    status_box.update(label="✅ Reminder successfully scheduled!", state="complete")
+                    status_box.update(label="✅ Operation execution complete!", state="complete")
 
                 tool_response_part = types.Part.from_function_response(
                     name=call.name,
@@ -364,56 +449,61 @@ def run_agent_turn():
                     except Exception:
                         continue
 
-                return final_response.text if final_response else "Scheduled successfully."
+                return final_response.text if final_response else "Operation processed successfully."
 
     return response.text
 
 # -------------------------------------------------------------------
-# 5. Main View: Workspace Chat
+# 5. Main View: Centered Modern Workspace
 # -------------------------------------------------------------------
 st.markdown("""
-<div class="hero-container">
-    <div class="hero-title">⏰ Reminder Agent</div>
-    <div class="hero-subtitle">Autonomous Scheduling Workspace • Real-Time Tool Execution</div>
+<div class="welcome-header">
+    <div class="welcome-title">What can I schedule for you today?</div>
+    <div class="welcome-subtitle">Specify any task using natural, relative time commands</div>
 </div>
 """, unsafe_allow_html=True)
 
-# Live Status Indicator
 st.markdown("""
 <div class="agent-status-bar">
     <span class="status-pulse"></span>
-    <span style="font-size: 0.85rem; font-weight: 600; color: #334155;">Agent Status: Online & Listening</span>
+    <span style="font-size: 0.8rem; font-weight: 600; color: #475569;">Agent Status: Online & Listening</span>
 </div>
 """, unsafe_allow_html=True)
 
-# Render Chat Thread
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+chat_container = st.container(height=520, border=False)
 
-# User Chat Input
-if user_input := st.chat_input("Command your Reminder Agent (e.g., 'Remind me to submit team report in 10 minutes')"):
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(user_input)
+with chat_container:
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-    with st.chat_message("assistant"):
-        with st.spinner("Analyzing intent & calculating schedule parameters..."):
-            try:
-                agent_reply = run_agent_turn()
-            except Exception as err:
-                agent_reply = f"⚠️ Request failed: {err}. Please verify your API key and try again."
+user_prompt = st.chat_input("Command your Reminder Agent (e.g., 'Update client meeting reminder to 2 hours')")
+active_input = st.session_state.preset_input or user_prompt
 
-            st.markdown(agent_reply)
-            st.session_state.messages.append({"role": "assistant", "content": agent_reply})
+if active_input:
+    st.session_state.preset_input = None
+    st.session_state.messages.append({"role": "user", "content": active_input})
+    with chat_container:
+        with st.chat_message("user"):
+            st.markdown(active_input)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Analyzing intent & calculating schedule parameters..."):
+                try:
+                    agent_reply = run_agent_turn()
+                except Exception as err:
+                    agent_reply = f"⚠️ Request failed: {err}. Please verify your API key and try again."
+
+                st.markdown(agent_reply)
+                st.session_state.messages.append({"role": "assistant", "content": agent_reply})
+                st.rerun()
 
 # -------------------------------------------------------------------
-# 6. Sidebar: Control Panel & Dynamic Schedule Dashboard
+# 6. Sidebar: Fixed Header + Isolated Scroll Container for Reminders
 # -------------------------------------------------------------------
 with st.sidebar:
-    st.title("⚙️ Control Panel")
+    st.title("⏰ Reminder Agent")
     
-    # Real-Time System Clock Fragment (Ticks every 1 sec)
     @st.fragment(run_every=1)
     def render_live_clock():
         st.metric(
@@ -425,66 +515,67 @@ with st.sidebar:
     render_live_clock()
     st.divider()
 
-    # Active Schedule Dashboard Fragment (Ticks every 1 sec for smooth countdowns)
     @st.fragment(run_every=1)
     def render_scheduled_dashboard():
         st.subheader("📋 Active Reminders")
         
         if st.session_state.reminders:
-            for idx, item in enumerate(st.session_state.reminders):
-                now = datetime.now()
-                time_left = int((item["target_dt"] - now).total_seconds())
+            # Isolated Scroll Container for Reminder Cards Only (Fixed Height 420px)
+            reminder_scroll_box = st.container(height=420, border=False)
+            
+            with reminder_scroll_box:
+                for idx, item in enumerate(st.session_state.reminders):
+                    now = datetime.now()
+                    time_left = int((item["target_dt"] - now).total_seconds())
 
-                if item["status"] == "Active" and time_left <= 0:
-                    item["status"] = "Triggered"
-                    st.toast(f"**Reminder Alert:** {item['task']}", icon="⏰")
+                    if item["status"] == "Active" and time_left <= 0:
+                        item["status"] = "Triggered"
+                        st.toast(f"**Reminder Alert:** {item['task']}", icon="⏰")
 
-                with st.container(border=True):
-                    cols = st.columns([2.5, 1.5])
-                    with cols[0]:
-                        st.markdown(f"**{item['task']}**")
-                    with cols[1]:
-                        badge_class = "status-badge-active" if item['status'] == "Active" else "status-badge-triggered"
-                        st.markdown(f'<span class="{badge_class}">{item["status"]}</span>', unsafe_allow_html=True)
-                    
-                    # Live Countdown Calculation
-                    if item['status'] == "Active" and time_left > 0:
-                        mins, secs = divmod(time_left, 60)
-                        hrs, mins = divmod(mins, 60)
-                        countdown_str = f"⏳ In {hrs:02d}h {mins:02d}m {secs:02d}s"
-                    else:
-                        countdown_str = "⌛ Triggered"
+                    with st.container(border=True):
+                        cols = st.columns([2.5, 1.5])
+                        with cols[0]:
+                            st.markdown(f"**{item['task']}**")
+                        with cols[1]:
+                            badge_class = "status-badge-active" if item['status'] == "Active" else "status-badge-triggered"
+                            st.markdown(f'<span class="{badge_class}">{item["status"]}</span>', unsafe_allow_html=True)
+                        
+                        if item['status'] == "Active" and time_left > 0:
+                            mins, secs = divmod(time_left, 60)
+                            hrs, mins = divmod(mins, 60)
+                            countdown_str = f"⏳ In {hrs:02d}h {mins:02d}m {secs:02d}s"
+                        else:
+                            countdown_str = "⌛ Triggered"
 
-                    st.caption(f"🕒 Due: `{item['scheduled_time']}`")
-                    st.caption(f"**{countdown_str}**")
-                    
-                    # Action Buttons: Snooze & Cancel
-                    if item['status'] == "Active":
-                        c1, c2 = st.columns(2)
-                        with c1:
-                            if st.button("➕ Snooze 5m", key=f"snooze_{item['id']}", use_container_width=True):
-                                if item['id'] in st.session_state.timers:
-                                    st.session_state.timers[item['id']].cancel()
-                                
-                                new_dt = item['target_dt'] + timedelta(minutes=5)
-                                item['target_dt'] = new_dt
-                                item['scheduled_time'] = new_dt.strftime("%Y-%m-%d %H:%M:%S")
-                                
-                                delay = (new_dt - datetime.now()).total_seconds()
-                                new_timer = threading.Timer(delay, trigger_notification, args=[item['task']])
-                                new_timer.start()
-                                st.session_state.timers[item['id']] = new_timer
-                                
-                                st.toast(f"Snoozed '{item['task']}' for 5 minutes!", icon="⏰")
-                                st.rerun()
+                        st.caption(f"🕒 Due: `{item['scheduled_time']}`")
+                        st.caption(f"**{countdown_str}**")
+                        
+                        if item['status'] == "Active":
+                            c1, c2 = st.columns(2)
+                            with c1:
+                                if st.button("➕ Snooze 5m", key=f"snooze_{item['id']}", use_container_width=True):
+                                    if item['id'] in st.session_state.timers:
+                                        st.session_state.timers[item['id']].cancel()
+                                    
+                                    new_dt = item['target_dt'] + timedelta(minutes=5)
+                                    item['target_dt'] = new_dt
+                                    item['scheduled_time'] = new_dt.strftime("%Y-%m-%d %H:%M:%S")
+                                    
+                                    delay = (new_dt - datetime.now()).total_seconds()
+                                    new_timer = threading.Timer(delay, trigger_notification, args=[item['task']])
+                                    new_timer.start()
+                                    st.session_state.timers[item['id']] = new_timer
+                                    
+                                    st.toast(f"Snoozed '{item['task']}' for 5 minutes!", icon="⏰")
+                                    st.rerun()
 
-                        with c2:
-                            if st.button("Cancel", key=f"cancel_{item['id']}", type="secondary", use_container_width=True):
-                                if item['id'] in st.session_state.timers:
-                                    st.session_state.timers[item['id']].cancel()
-                                    del st.session_state.timers[item['id']]
-                                st.session_state.reminders.pop(idx)
-                                st.rerun()
+                            with c2:
+                                if st.button("Cancel", key=f"cancel_{item['id']}", type="secondary", use_container_width=True):
+                                    if item['id'] in st.session_state.timers:
+                                        st.session_state.timers[item['id']].cancel()
+                                        del st.session_state.timers[item['id']]
+                                    st.session_state.reminders.pop(idx)
+                                    st.rerun()
                             
             if st.button("Clear Dashboard", use_container_width=True, type="primary"):
                 for timer in st.session_state.timers.values():
