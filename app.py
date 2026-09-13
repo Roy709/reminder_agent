@@ -1,5 +1,6 @@
 import streamlit as st
 import threading
+import uuid
 from datetime import datetime, timedelta
 from plyer import notification
 from google import genai
@@ -23,6 +24,7 @@ st.set_page_config(
 st.markdown("""
 <style>
     /* Global Page Body Reset */
+    
     .stApp {
         background-color: #ffffff !important;
         color: #0f172a !important;
@@ -44,11 +46,14 @@ st.markdown("""
         max-width: 360px !important;
     }
 
-    /* Disable Outer Sidebar Container Scrollbar */
+    /* Disable Outer Sidebar Container Scrollbar & Force Flex Column Layout */
     [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
         padding-top: 0rem !important;
         overflow-y: hidden !important;
         overflow-x: hidden !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
     [data-testid="stSidebar"] [data-testid="stSidebarHeader"] {
@@ -58,10 +63,17 @@ st.markdown("""
         padding: 0px !important;
         margin: 0px !important;
     }
+    data-testid="stSidebarUserContent"{
+        padding-bottom: 0rem important!;
+    }
 
     [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
         padding-top: 0.5rem !important;
         margin-top: 0.5rem !important;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
     [data-testid="stSidebar"] h1,
@@ -206,13 +218,21 @@ st.markdown("""
     @keyframes pulse-green {
         0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
         70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
 
     /* Chat Messages Container Inner Border Removal */
     [data-testid="stVerticalBlockBorderWrapper"] {
         border: none !important;
     }
+
+    /* Fixed Bottom Action Container in Sidebar */
+    .sidebar-bottom-actions {
+        margin-top: auto;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    
 </style>
 """, unsafe_allow_html=True)
 
@@ -255,12 +275,16 @@ def trigger_notification(task_name: str):
     except Exception as e:
         print(f"Cloud execution alert triggered for task: '{task_name}' (Desktop notification skipped on server: {e})")
 
+import uuid
+
 def create_reminder_tool(task: str, scheduled_time: str) -> str:
     """Schedules a new task with active thread references."""
     try:
         target_dt = datetime.strptime(scheduled_time, "%Y-%m-%d %H:%M:%S")
         delay = (target_dt - datetime.now()).total_seconds()
-        task_id = f"task_{int(datetime.now().timestamp())}"
+        
+        # Unique ID generated per task using UUID hex fragment
+        task_id = f"task_{int(datetime.now().timestamp())}_{uuid.uuid4().hex[:6]}"
 
         if delay > 0:
             timer = threading.Timer(delay, trigger_notification, args=[task])
@@ -405,51 +429,52 @@ def run_agent_turn():
         return "⚠️ Service temporarily experiencing high API load. Please resubmit your command in a few moments."
 
     if response.function_calls:
-        for call in response.function_calls:
-            if call.name in ["create_reminder_tool", "update_reminder_tool"]:
+        tool_responses = []
+        
+        with st.status("⚡ Reminder Agent: Processing Tool Execution...", expanded=True) as status_box:
+            for call in response.function_calls:
                 args = call.args
-                
-                with st.status(f"⚡ Processing Tool: `{call.name}`...", expanded=True) as status_box:
-                    if call.name == "create_reminder_tool":
-                        st.write(f"**Task Description:** `{args['task']}`")
-                        st.write(f"**Calculated Time:** `{args['scheduled_time']}`")
-                        tool_result = create_reminder_tool(args['task'], args['scheduled_time'])
-                    else:
-                        st.write(f"**Target Task:** `{args['search_query']}`")
-                        st.write(f"**New Time:** `{args['new_scheduled_time']}`")
-                        tool_result = update_reminder_tool(
-                            search_query=args['search_query'],
-                            new_scheduled_time=args['new_scheduled_time'],
-                            new_task_name=args.get('new_task_name')
-                        )
-                    
-                    status_box.update(label="✅ Operation execution complete!", state="complete")
+                if call.name == "create_reminder_tool":
+                    st.write(f"**Scheduling Task:** `{args['task']}` @ `{args['scheduled_time']}`")
+                    tool_result = create_reminder_tool(args['task'], args['scheduled_time'])
+                elif call.name == "update_reminder_tool":
+                    st.write(f"**Updating Task:** `{args['search_query']}` to `{args['new_scheduled_time']}`")
+                    tool_result = update_reminder_tool(
+                        search_query=args['search_query'],
+                        new_scheduled_time=args['new_scheduled_time'],
+                        new_task_name=args.get('new_task_name')
+                    )
+                else:
+                    tool_result = f"ERROR: Tool {call.name} unrecognized."
 
-                tool_response_part = types.Part.from_function_response(
-                    name=call.name,
-                    response={"result": tool_result}
+                tool_responses.append(
+                    types.Part.from_function_response(
+                        name=call.name,
+                        response={"result": tool_result}
+                    )
                 )
+            
+            status_box.update(label="✅ All tools executed successfully!", state="complete")
 
-                model_turn = response.candidates[0].content
+        model_turn = response.candidates[0].content
+        updated_contents = chat_contents + [
+            model_turn,
+            types.Content(role="user", parts=tool_responses)
+        ]
 
-                updated_contents = chat_contents + [
-                    model_turn,
-                    types.Content(role="user", parts=[tool_response_part])
-                ]
+        final_response = None
+        for model_name in models_to_try:
+            try:
+                final_response = client.models.generate_content(
+                    model=model_name,
+                    contents=updated_contents,
+                    config=types.GenerateContentConfig(system_instruction=system_instruction)
+                )
+                break
+            except Exception:
+                continue
 
-                final_response = None
-                for model_name in models_to_try:
-                    try:
-                        final_response = client.models.generate_content(
-                            model=model_name,
-                            contents=updated_contents,
-                            config=types.GenerateContentConfig(system_instruction=system_instruction)
-                        )
-                        break
-                    except Exception:
-                        continue
-
-                return final_response.text if final_response else "Operation processed successfully."
+        return final_response.text if final_response else "Operation processed successfully."
 
     return response.text
 
@@ -499,20 +524,10 @@ if active_input:
                 st.rerun()
 
 # -------------------------------------------------------------------
-# 6. Sidebar: Fixed Header + Isolated Scroll Container for Reminders
+# 6. Sidebar: Fixed Header + Isolated Scroll Container + Bottom Action Button
 # -------------------------------------------------------------------
 with st.sidebar:
     st.title("⏰ Reminder Agent")
-    
-    @st.fragment(run_every=1)
-    def render_live_clock():
-        st.metric(
-            label="System Date & Time", 
-            value=datetime.now().strftime("%I:%M:%S %p"),
-            delta=datetime.now().strftime("%Y-%m-%d")
-        )
-    
-    render_live_clock()
     st.divider()
 
     @st.fragment(run_every=1)
@@ -520,8 +535,8 @@ with st.sidebar:
         st.subheader("📋 Active Reminders")
         
         if st.session_state.reminders:
-            # Isolated Scroll Container for Reminder Cards Only (Fixed Height 420px)
-            reminder_scroll_box = st.container(height=420, border=False)
+            # Isolated Scroll Container for Reminder Cards Only (Fixed Height 360px)
+            reminder_scroll_box = st.container(height=360, border=False)
             
             with reminder_scroll_box:
                 for idx, item in enumerate(st.session_state.reminders):
@@ -577,12 +592,15 @@ with st.sidebar:
                                     st.session_state.reminders.pop(idx)
                                     st.rerun()
                             
+            # Fixed Bottom Container for Clear Button
+            st.markdown('<div class="sidebar-bottom-actions">', unsafe_allow_html=True)
             if st.button("Clear Dashboard", use_container_width=True, type="primary"):
                 for timer in st.session_state.timers.values():
                     timer.cancel()
                 st.session_state.timers.clear()
                 st.session_state.reminders.clear()
                 st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
             st.info("No active reminders currently queued.")
 
