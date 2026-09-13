@@ -1,6 +1,7 @@
 import streamlit as st
 import threading
 import uuid
+import base64
 from datetime import datetime, timedelta
 from plyer import notification
 from google import genai
@@ -217,8 +218,8 @@ st.markdown("""
     }
     @keyframes pulse-green {
         0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.7); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
     }
 
     /* Chat Messages Container Inner Border Removal */
@@ -263,6 +264,49 @@ def get_gemini_chat_history():
 # -------------------------------------------------------------------
 # 3. Notification & Tool Execution Logic
 # -------------------------------------------------------------------
+def play_alert_sound():
+    """Plays Option 2: Triple Upbeat Arpeggio (C6 -> E6 -> G6 rising major chord)."""
+    js_audio = """
+    <script>
+    (function() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+
+            // Resume suspended AudioContext (fixes browser autoplay restrictions)
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            function playNote(freq, startTime, duration) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+                
+                gain.gain.setValueAtTime(0.15, ctx.currentTime + startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime + startTime);
+                osc.stop(ctx.currentTime + startTime + duration);
+            }
+
+            // Fast 3-note arpeggio: C6 -> E6 -> G6
+            playNote(1046.50, 0, 0.15);
+            playNote(1318.51, 0.10, 0.15);
+            playNote(1567.98, 0.20, 0.40);
+        } catch(e) {
+            console.log("Audio alert blocked:", e);
+        }
+    })();
+    </script>
+    """
+    # Use components.v1.html to allow script execution inside an isolated iframe
+    st.components.v1.html(js_audio, height=0, width=0)
+
 def trigger_notification(task_name: str):
     """Fires native OS desktop notification with cloud server fallback."""
     try:
@@ -274,8 +318,6 @@ def trigger_notification(task_name: str):
         )
     except Exception as e:
         print(f"Cloud execution alert triggered for task: '{task_name}' (Desktop notification skipped on server: {e})")
-
-import uuid
 
 def create_reminder_tool(task: str, scheduled_time: str) -> str:
     """Schedules a new task with active thread references."""
@@ -546,6 +588,7 @@ with st.sidebar:
                     if item["status"] == "Active" and time_left <= 0:
                         item["status"] = "Triggered"
                         st.toast(f"**Reminder Alert:** {item['task']}", icon="⏰")
+                        play_alert_sound()
 
                     with st.container(border=True):
                         cols = st.columns([2.5, 1.5])
