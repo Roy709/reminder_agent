@@ -20,52 +20,46 @@ st.set_page_config(
 )
 
 # -------------------------------------------------------------------
-# 1. Cross-Browser CSS Styling System (Localized Sidebar Scrollbar)
+# 1. Cross-Browser CSS Styling System (Universal Collapsible Sidebar)
 # -------------------------------------------------------------------
 st.markdown("""
 <style>
     /* Global Page Body Reset */
-    
     .stApp {
         background-color: #ffffff !important;
         color: #0f172a !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* Permanently Hide Sidebar Collapse/Expand Toggle Controls (<< and >>) */
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarCollapsedControl"] {
-        display: none !important;
-        visibility: hidden !important;
+    /* Enable Top Header Bar for Universal Collapse/Expand Controls */
+    [data-testid="stHeader"] {
+        background-color: transparent !important;
+        z-index: 100 !important;
     }
 
-    /* Force Sidebar Open & Fixed Width */
+    /* Style Sidebar Toggle Buttons (<< and >> icons) Across Desktop & Mobile */
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarCollapsedControl"] {
+        display: block !important;
+        visibility: visible !important;
+        color: #0f172a !important;
+    }
+
+    /* Responsive Collapsible Sidebar Width */
     [data-testid="stSidebar"] {
         background-color: #f8fafc !important;
         border-right: 1px solid #e2e8f0;
-        min-width: 360px !important;
-        max-width: 360px !important;
+        width: 360px !important;
     }
 
     /* Disable Outer Sidebar Container Scrollbar & Force Flex Column Layout */
     [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
-        padding-top: 0rem !important;
+        padding-top: 1rem !important;
         overflow-y: hidden !important;
         overflow-x: hidden !important;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stSidebarHeader"] {
-        display: none !important;
-        height: 0px !important;
-        min-height: 0px !important;
-        padding: 0px !important;
-        margin: 0px !important;
-    }
-    data-testid="stSidebarUserContent"{
-        padding-bottom: 0rem important!;
     }
 
     [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
@@ -94,17 +88,13 @@ st.markdown("""
     [data-testid="stMetricLabel"] {
         color: #475569 !important;
     }
-
-    /* Remove Invisible Top Header Padding */
-    [data-testid="stHeader"] {
-        display: none !important;
-    }
+    
 
     /* Main Screen Container Spacing Optimization */
     .stMainBlockContainer,
     [data-testid="stMainBlockContainer"],
     .main .block-container {
-        padding-top: 0.5rem !important;
+        padding-top: 2rem !important;
         margin-top: 0rem !important;
         padding-bottom: 0.5rem !important;
         max-width: 850px;
